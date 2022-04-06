@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:device_scanner/models/ticket_model.dart';
 import 'package:device_scanner/screens/map_screen.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +15,6 @@ class TicketsScreen extends StatelessWidget {
         future: Database.getTickets(),
         builder: (context, future) {
           if (future.hasData) {
-            log(future.data!.length.toString());
             if (future.data!.isEmpty) {
               return Center(
                 child: Text(
@@ -28,7 +26,7 @@ class TicketsScreen extends StatelessWidget {
             } else {
               return ListView(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 25),
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 45),
                 children: List.generate(
                   future.data!.length,
                   (index) => _TicketCard(
@@ -243,8 +241,8 @@ class _TicketCard extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => MapScreen(
-                                  position: LatLng(ticket.position.latitude,
-                                      ticket.position.longitude),
+                                  devicePosition:
+                                      LatLng(ticket.lat, ticket.lng),
                                 ),
                               ),
                             ),

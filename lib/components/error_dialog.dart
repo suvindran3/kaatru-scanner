@@ -58,9 +58,6 @@ class ErrorDialog {
             },
             style: ButtonStyle(
               backgroundColor: MaterialStateProperty.all(Colors.brown),
-              fixedSize: MaterialStateProperty.all(
-                const Size.fromWidth(100),
-              ),
               shape: MaterialStateProperty.all(
                 RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),

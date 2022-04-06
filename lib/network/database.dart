@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'package:device_scanner/models/device_model.dart';
 import 'package:device_scanner/models/ticket_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -17,11 +18,12 @@ enum param {
   lng,
   ticketStatus,
   ticketID,
+  macAddress
 }
 
 class Database {
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
-  static final Db _db = Db('mongodb://10.42.168.155:27017/admin');
+  static late Db _db;
 
   static UserModel user = UserModel.fromJson({});
 
@@ -40,6 +42,8 @@ class Database {
 
   static Future<void> connect(BuildContext context) async {
     log('connecting');
+    _db = await Db.create(
+        'mongodb+srv://suvindran:pXNfQXTYsTZ5H1ZE@kaatru.gnrmu.mongodb.net/kaatru');
     await _db.open().onError(
       (error, stackTrace) async {
         log(error.toString());
@@ -79,11 +83,14 @@ class Database {
   }
 
   static Future<void> saveUser() async => await _secureStorage
-      .write(key: param.userID.name, value: user.name)
+      .write(key: param.userID.name, value: user.id)
       .whenComplete(
         () async => await _secureStorage.write(
-            key: param.username.name, value: user.id),
+            key: param.username.name, value: user.name),
       );
+
+  static Future<int> getTicketID() async =>
+      await _db.collection('tickets').count() + 1;
 
   static Future<void> addTicket(
       BuildContext context, TicketModel ticket) async {
@@ -100,6 +107,28 @@ class Database {
     ).timeout(
       const Duration(seconds: 10),
     );
+  }
+
+  static Future<void> deployDevice(DeviceModel device) async {
+    await reconnect();
+    await _db.collection('installedDevices').insert(
+          device.toJson(),
+        );
+  }
+
+  static Future<List<DeviceModel>> getInstalledDevices() async {
+    await reconnect();
+    final Map<String, dynamic> query = {
+      param.userID.name: user.id,
+    };
+    return await _db.collection('installedDevices').find(query).toList().then(
+          (value) => List.generate(
+            value.length,
+            (index) => DeviceModel.fromJson(
+              value.elementAt(index),
+            ),
+          ),
+        );
   }
 
   static Future<List<TicketModel>> getTickets() async {

@@ -61,9 +61,6 @@ class _HomeScreenState extends State<HomeScreen> {
       body: PageView(
         controller: pageController,
         onPageChanged: (index) {
-          pageController.animateToPage(index,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.decelerate);
           navbarController.updateIndex(index);
         },
         children: const [

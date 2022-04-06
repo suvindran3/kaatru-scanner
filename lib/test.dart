@@ -1,5 +1,7 @@
 import 'dart:developer';
 
+import 'package:device_scanner/components/custom_button.dart';
+import 'package:device_scanner/controllers/button_controller.dart';
 import 'package:device_scanner/network/device_call.dart';
 import 'package:flutter/material.dart';
 
@@ -11,22 +13,27 @@ class Test extends StatefulWidget {
 }
 
 class _TestState extends State<Test> {
+  final ButtonController buttonController = ButtonController();
 
   @override
   void initState() {
     super.initState();
   }
 
-  Future<void> init() async {
-    final dynamic status = await connectToDevice(context);
-    log(status.toString());
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: CustomButton(
+                onTap: () => buttonController.updateState(),
+                buttonText: 'Debug Device'.toUpperCase(),
+                buttonController: buttonController),
+          ),
+        ],
       ),
     );
   }

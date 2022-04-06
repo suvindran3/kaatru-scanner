@@ -1,6 +1,7 @@
 import 'package:device_scanner/components/scanner_line.dart';
-import 'package:device_scanner/models/meta_details_model.dart';
+import 'package:device_scanner/models/device_model.dart';
 import 'package:device_scanner/models/scan_model.dart';
+import 'package:device_scanner/network/database.dart';
 import 'package:device_scanner/screens/scanned_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -15,6 +16,8 @@ class ScannerScreen extends StatefulWidget {
 
 class _ScannerScreenState extends State<ScannerScreen> {
   String? barcode;
+
+  final String testData = 'device id: 1\nmac address: 123';
 
   final MobileScannerController controller = MobileScannerController(
     torchEnabled: false,
@@ -81,6 +84,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
               IconButton(
                 color: Colors.white,
                 iconSize: 25.0,
+                onPressed: test,
+                icon: const Icon(Icons.bug_report_outlined),
+              ),
+              IconButton(
+                color: Colors.white,
+                iconSize: 25.0,
                 onPressed: () => controller.switchCamera(),
                 icon: ValueListenableBuilder(
                   valueListenable: controller.cameraFacingState,
@@ -117,6 +126,38 @@ class _ScannerScreenState extends State<ScannerScreen> {
     );
   }
 
+  Future<void> test() async {
+    try {
+      final ScanModel scanModel = ScanModel.fromScan(
+        testData.split('\n'),
+      );
+      final Position position = await Geolocator.getCurrentPosition();
+      final DeviceModel metaDetails = DeviceModel.init(
+          userID: Database.user.id,
+          username: Database.user.name,
+          lat: position.latitude,
+          lng: position.longitude,
+          macAddress: scanModel.macAddress,
+          id: scanModel.deviceID);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ScannedScreen(device: metaDetails),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Invalid QR code format',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   dynamic handleQRCode(
       Barcode barcode, MobileScannerArguments? arguments) async {
     if (barcode.rawValue != null) {
@@ -125,15 +166,17 @@ class _ScannerScreenState extends State<ScannerScreen> {
           barcode.rawValue!.split('\n'),
         );
         final Position position = await Geolocator.getCurrentPosition();
-        final MetaDetailsModel metaDetails = MetaDetailsModel.init(
-            scanDetail: scanModel,
-            userID: '9',
-            username: 'Test',
-            position: position);
+        final DeviceModel metaDetails = DeviceModel.init(
+            userID: Database.user.id,
+            username: Database.user.name,
+            lat: position.latitude,
+            lng: position.longitude,
+            macAddress: scanModel.macAddress,
+            id: scanModel.deviceID);
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ScannedScreen(metaDetails: metaDetails),
+            builder: (context) => ScannedScreen(device: metaDetails),
           ),
         );
       } catch (e) {

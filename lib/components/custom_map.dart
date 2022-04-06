@@ -22,9 +22,9 @@ class CustomMap extends StatelessWidget {
           urlTemplate:
           "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
           subdomains: ['a', 'b', 'c'],
-          attributionBuilder: (_) {
+          /*attributionBuilder: (_) {
             return const Text("© OpenStreetMap contributors");
-          },
+          },*/
         ),
         MarkerLayerOptions(
           markers: [
