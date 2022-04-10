@@ -17,7 +17,7 @@ class CustomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: onTap,
+      onPressed: buttonController.isLoading ? null : onTap,
       child: AnimatedBuilder(
         animation: buttonController,
         builder: (context, _) => buttonController.isLoading

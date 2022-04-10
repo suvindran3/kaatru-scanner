@@ -184,7 +184,7 @@ class _DebugScreenState extends State<DebugScreen> {
 
   Future<void> deploy() async {
     buttonController.updateState();
-    await Database.deployDevice(widget.device);
+    await Database.deployDevice(context, widget.device);
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(

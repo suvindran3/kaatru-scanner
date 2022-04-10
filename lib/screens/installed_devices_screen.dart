@@ -17,7 +17,7 @@ class InstalledDevicesScreen extends StatelessWidget {
         leading: const BackButton(),
       ),
       body: FutureBuilder<List<DeviceModel>>(
-        future: Database.getInstalledDevices(),
+        future: Database.getInstalledDevices(context),
         builder: (context, future) {
           if (future.hasData) {
             if (future.data!.isNotEmpty) {

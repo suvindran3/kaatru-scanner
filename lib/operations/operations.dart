@@ -82,7 +82,7 @@ class Operations {
       required String password,
       required VoidCallback onError}) async {
     final Map<String, dynamic> user =
-        await Database.getUser(userID: userID) ?? {};
+        await Database.getUser(context, userID: userID) ?? {};
     if (user.isEmpty) {
       onError();
       ErrorDialog.show(context, 'Invalid user id');

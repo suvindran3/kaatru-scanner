@@ -1,6 +1,7 @@
 import 'package:device_scanner/screens/sign_in_screen.dart';
 import 'package:device_scanner/screens/scanned_screen.dart';
 import 'package:device_scanner/screens/splash_screen.dart';
+import 'package:device_scanner/test.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'screens/home_screen.dart';
@@ -32,7 +33,7 @@ class MyApp extends StatelessWidget {
               primary: Colors.brown,
             ),
       ),
-      home: const SplashScreen(),
+      home: const Test(),
     );
   }
 }

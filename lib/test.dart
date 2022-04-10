@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:device_scanner/components/custom_button.dart';
 import 'package:device_scanner/controllers/button_controller.dart';
+import 'package:device_scanner/network/database.dart';
 import 'package:device_scanner/network/device_call.dart';
 import 'package:flutter/material.dart';
 
@@ -17,6 +18,7 @@ class _TestState extends State<Test> {
 
   @override
   void initState() {
+    Database.reconnect();
     super.initState();
   }
 
@@ -29,7 +31,11 @@ class _TestState extends State<Test> {
           Padding(
             padding: const EdgeInsets.all(15.0),
             child: CustomButton(
-                onTap: () => buttonController.updateState(),
+                onTap: () async {
+                  buttonController.updateState();
+                  await Database.getInstalledDevices(context);
+                  buttonController.updateState();
+                },
                 buttonText: 'Debug Device'.toUpperCase(),
                 buttonController: buttonController),
           ),

@@ -12,7 +12,7 @@ class TicketsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: FutureBuilder<List<TicketModel>>(
-        future: Database.getTickets(),
+        future: Database.getTickets(context),
         builder: (context, future) {
           if (future.hasData) {
             if (future.data!.isEmpty) {

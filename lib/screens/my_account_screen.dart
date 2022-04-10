@@ -53,28 +53,14 @@ class _MyAccountScreenState extends State<MyAccountScreen>
               height: MediaQuery.of(context).size.height / 4.3,
               padding: EdgeInsets.only(
                   right: 15, left: 15, top: MediaQuery.of(context).padding.top),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 35,
-                    backgroundColor: Color(0xffEAEFF3),
-                    child: Icon(
-                      Icons.person,
-                      color: Colors.grey,
-                      size: 40,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20.0),
-                    child: Text(
-                      Database.user.name,
-                      style: GoogleFonts.sourceSansPro(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
+              child: const CircleAvatar(
+                radius: 35,
+                backgroundColor: Color(0xffEAEFF3),
+                child: Icon(
+                  Icons.person,
+                  color: Colors.grey,
+                  size: 40,
+                ),
               ),
             ),
             Expanded(
@@ -85,7 +71,53 @@ class _MyAccountScreenState extends State<MyAccountScreen>
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    Container(
+                      height: 80,
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 15, vertical: 15),
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'User ID:  ',
+                                  style: GoogleFonts.outfit(color: Colors.grey),
+                                ),
+                                TextSpan(
+                                  text: '12345',
+                                  style:
+                                      GoogleFonts.outfit(color: Colors.black),
+                                ),
+                              ],
+                            ),
+                          ),
+                          RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'Username:  ',
+                                  style: GoogleFonts.outfit(color: Colors.grey),
+                                ),
+                                TextSpan(
+                                  text: 'Test',
+                                  style:
+                                      GoogleFonts.outfit(color: Colors.black),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     const SizedBox(
                       height: 10,
                     ),
@@ -126,8 +158,7 @@ class _MyAccountScreenState extends State<MyAccountScreen>
       content: 'Are you sure you want to sign out?',
       secondButtonText: 'Sign out',
       secondButtonTap: () async {
-        customDialog.stateChanged
-          = true;
+        customDialog.stateChanged = true;
         await Database.signOut();
       },
       onComplete: (state) {
