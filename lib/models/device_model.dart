@@ -8,11 +8,9 @@ class DeviceModel {
   final double lat;
   final double lng;
   final String id;
-  final String macAddress;
 
   DeviceModel.init(
       {required this.id,
-      required this.macAddress,
       required this.userID,
       required this.username,
       required this.lat,
@@ -25,8 +23,7 @@ class DeviceModel {
         id = json[param.deviceID.name],
         timestamp = json[param.timestamp.name],
         lat = json[param.lat.name],
-        lng = json[param.lng.name],
-        macAddress = json[param.macAddress.name];
+        lng = json[param.lng.name];
 
   Map<String, dynamic> toJson() => {
         param.username.name: username,
@@ -35,6 +32,5 @@ class DeviceModel {
         param.lat.name: lat,
         param.lng.name: lng,
         param.deviceID.name: id,
-        param.macAddress.name: macAddress,
       };
 }

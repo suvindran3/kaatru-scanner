@@ -7,10 +7,10 @@ import 'package:device_scanner/models/device_model.dart';
 import 'package:device_scanner/models/ticket_model.dart';
 import 'package:device_scanner/network/database.dart';
 import 'package:device_scanner/network/device_call.dart';
+import 'package:device_scanner/network/push_notification.dart';
 import 'package:device_scanner/operations/operations.dart';
 import 'package:device_scanner/screens/success_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class DebugScreen extends StatefulWidget {
   final DeviceModel device;
@@ -159,32 +159,44 @@ class _DebugScreenState extends State<DebugScreen> {
     final String ticketID = await Database.getTicketID().then(
       (value) => value.toString(),
     );
-    await Database.addTicket(
-      context,
-      TicketModel.init(
-          userID: widget.device.userID,
-          deviceID: widget.device.id,
-          id: ticketID,
-          timestamp: Operations.getTimestamp(),
-          lat: widget.device.lat,
-          lng: widget.device.lng,
-          username: widget.device.username),
-    );
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SuccessScreen(
-          id: ticketID,
-          forTicket: true,
+    final bool ticketExists = await Database.ticketExists(widget.device.id);
+    if (ticketExists) {
+      const SnackBar snackBar = SnackBar(
+        content: Text('A ticket is already active for this device'),
+      );
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    } else {
+      final String fcmToken = await Database.getFcmToken(widget.device.id);
+      await Database.addTicket(
+        TicketModel.init(
+            userID: widget.device.userID,
+            deviceID: widget.device.id,
+            id: ticketID,
+            timestamp: Operations.getTimestamp(),
+            lat: widget.device.lat,
+            lng: widget.device.lng,
+            username: widget.device.username),
+      );
+      if (fcmToken.isNotEmpty) {
+        await PushNotification().send(fcmToken);
+      }
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SuccessScreen(
+            id: ticketID,
+            forTicket: true,
+          ),
         ),
-      ),
-      (Route<dynamic> route) => route.isFirst,
-    );
+        (Route<dynamic> route) => route.isFirst,
+      );
+    }
   }
 
   Future<void> deploy() async {
     buttonController.updateState();
-    await Database.deployDevice(context, widget.device);
+    await Database.deployDevice(widget.device);
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(

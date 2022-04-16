@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "250429577677",
+    "project_id": "kaatru-scanner",
+    "storage_bucket": "kaatru-scanner.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:250429577677:android:89ab7ba883a9924a52cc84",
+        "android_client_info": {
+          "package_name": "com.example.device_scanner"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "250429577677-jm7ek4igcvtlsd5eu5td7hcn0i04uavp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxVPq5wnRE0XdOxe2NlmjqHCeqGpXG9FU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "250429577677-jm7ek4igcvtlsd5eu5td7hcn0i04uavp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

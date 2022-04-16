@@ -1,6 +1,5 @@
 import 'package:device_scanner/components/error_dialog.dart';
-import 'package:device_scanner/screens/home_screen.dart';
-import 'package:device_scanner/screens/sign_in_screen.dart';
+import 'package:device_scanner/network/push_notification.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -14,6 +13,8 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  final PushNotification pushNotification = PushNotification();
+
   Future<void> checkPermission() async {
     final LocationPermission permission = await Geolocator.requestPermission();
     if (permission == LocationPermission.denied) {
@@ -34,8 +35,9 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> init() async {
+    pushNotification.foregroundNotification();
     await Database.isSignedIn();
-    await Database.connect(context);
+    await Database.connect();
   }
 
   @override

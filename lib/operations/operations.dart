@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:device_scanner/models/user_model.dart';
+import 'package:device_scanner/test.dart';
 import 'package:flutter/material.dart';
 import '../components/custom_snack_bar.dart';
 import 'package:intl/intl.dart';
 import '../components/error_dialog.dart';
+import '../main.dart';
 import '../network/database.dart';
 import '../screens/home_screen.dart';
 import '../screens/sign_in_screen.dart';
@@ -58,17 +60,17 @@ class Operations {
     }
   }
 
-  static Future<void> navigate(BuildContext context) async {
+  static Future<void> navigate() async {
     if (Database.user.id.isNotEmpty) {
       await Navigator.pushReplacement(
-        context,
+        kNavigatorKey.currentContext!,
         MaterialPageRoute(
           builder: (context) => const HomeScreen(),
         ),
       );
     } else {
       await Navigator.pushReplacement(
-        context,
+        kNavigatorKey.currentContext!,
         MaterialPageRoute(
           builder: (context) => const SignInScreen(),
         ),
@@ -82,7 +84,7 @@ class Operations {
       required String password,
       required VoidCallback onError}) async {
     final Map<String, dynamic> user =
-        await Database.getUser(context, userID: userID) ?? {};
+        await Database.getUser(userID: userID) ?? {};
     if (user.isEmpty) {
       onError();
       ErrorDialog.show(context, 'Invalid user id');
@@ -92,7 +94,8 @@ class Operations {
     } else if (user[param.password.name] == password) {
       Database.user = UserModel.fromJson(user);
       await Database.saveUser();
-      navigate(context);
+      await Database.addFcmToken();
+      navigate();
     }
   }
 

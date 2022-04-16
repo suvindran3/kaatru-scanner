@@ -42,8 +42,6 @@ class ScannedScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 DetailsCard(detailName: 'Device ID', detailValue: device.id),
-                DetailsCard(
-                    detailName: 'MAC Address', detailValue: device.macAddress),
                 DetailsCard(detailName: 'User ID', detailValue: device.userID),
                 DetailsCard(
                     detailName: 'Username', detailValue: device.username),

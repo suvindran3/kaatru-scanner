@@ -2,11 +2,17 @@ import 'package:device_scanner/screens/sign_in_screen.dart';
 import 'package:device_scanner/screens/scanned_screen.dart';
 import 'package:device_scanner/screens/splash_screen.dart';
 import 'package:device_scanner/test.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'screens/home_screen.dart';
 
-void main() {
+final GlobalKey<NavigatorState> kNavigatorKey = GlobalKey();
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(
     const MyApp(),
   );
@@ -18,6 +24,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: kNavigatorKey,
       theme: ThemeData(
         textTheme: TextTheme(
           headline6:
@@ -33,7 +40,7 @@ class MyApp extends StatelessWidget {
               primary: Colors.brown,
             ),
       ),
-      home: const Test(),
+      home: const SplashScreen(),
     );
   }
 }

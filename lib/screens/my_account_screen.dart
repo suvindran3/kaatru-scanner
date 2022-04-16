@@ -76,7 +76,7 @@ class _MyAccountScreenState extends State<MyAccountScreen>
                     Container(
                       height: 80,
                       margin: const EdgeInsets.symmetric(
-                          horizontal: 15, vertical: 15),
+                          horizontal: 15, vertical: 35),
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey),
@@ -93,7 +93,7 @@ class _MyAccountScreenState extends State<MyAccountScreen>
                                   style: GoogleFonts.outfit(color: Colors.grey),
                                 ),
                                 TextSpan(
-                                  text: '12345',
+                                  text: Database.user.id,
                                   style:
                                       GoogleFonts.outfit(color: Colors.black),
                                 ),
@@ -108,7 +108,7 @@ class _MyAccountScreenState extends State<MyAccountScreen>
                                   style: GoogleFonts.outfit(color: Colors.grey),
                                 ),
                                 TextSpan(
-                                  text: 'Test',
+                                  text: Database.user.name,
                                   style:
                                       GoogleFonts.outfit(color: Colors.black),
                                 ),

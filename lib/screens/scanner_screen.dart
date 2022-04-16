@@ -1,9 +1,9 @@
 import 'package:device_scanner/components/scanner_line.dart';
 import 'package:device_scanner/models/device_model.dart';
-import 'package:device_scanner/models/scan_model.dart';
 import 'package:device_scanner/network/database.dart';
 import 'package:device_scanner/screens/scanned_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
@@ -16,8 +16,6 @@ class ScannerScreen extends StatefulWidget {
 
 class _ScannerScreenState extends State<ScannerScreen> {
   String? barcode;
-
-  final String testData = 'device id: 1\nmac address: 123';
 
   final MobileScannerController controller = MobileScannerController(
     torchEnabled: false,
@@ -127,18 +125,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
   Future<void> test() async {
+    const String deviceID = 'KAATRU:S1';
     try {
-      final ScanModel scanModel = ScanModel.fromScan(
-        testData.split('\n'),
-      );
+      final Map<String, String> details = {
+        deviceID.split(':')[0]: deviceID.split(':')[1]
+      };
       final Position position = await Geolocator.getCurrentPosition();
       final DeviceModel metaDetails = DeviceModel.init(
           userID: Database.user.id,
           username: Database.user.name,
           lat: position.latitude,
           lng: position.longitude,
-          macAddress: scanModel.macAddress,
-          id: scanModel.deviceID);
+          id: details['KAATRU']!);
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -161,18 +159,19 @@ class _ScannerScreenState extends State<ScannerScreen> {
   dynamic handleQRCode(
       Barcode barcode, MobileScannerArguments? arguments) async {
     if (barcode.rawValue != null) {
+      HapticFeedback.vibrate();
+      final String deviceID = barcode.rawValue ?? '';
       try {
-        final ScanModel scanModel = ScanModel.fromScan(
-          barcode.rawValue!.split('\n'),
-        );
+        final Map<String, String> details = {
+          deviceID.split(':')[0]: deviceID.split(':')[1]
+        };
         final Position position = await Geolocator.getCurrentPosition();
         final DeviceModel metaDetails = DeviceModel.init(
             userID: Database.user.id,
             username: Database.user.name,
             lat: position.latitude,
             lng: position.longitude,
-            macAddress: scanModel.macAddress,
-            id: scanModel.deviceID);
+            id: details['KAATRU']!);
         Navigator.push(
           context,
           MaterialPageRoute(

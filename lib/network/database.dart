@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:developer';
+import 'package:device_scanner/main.dart';
 import 'package:device_scanner/models/device_model.dart';
 import 'package:device_scanner/models/ticket_model.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:device_scanner/network/push_notification.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import '../models/user_model.dart';
@@ -18,7 +19,8 @@ enum param {
   lng,
   ticketStatus,
   ticketID,
-  macAddress
+  macAddress,
+  fcmToken
 }
 
 class Database {
@@ -35,64 +37,61 @@ class Database {
       final Map<String, dynamic> userDetails = await _secureStorage.readAll();
       user = UserModel.fromJson(userDetails);
     }
+    return;
   }
 
-  static Future<void> signOut() async {
-    await _secureStorage.deleteAll();
-  }
+  static Future<void> signOut() async => await _secureStorage.deleteAll();
 
-  static Future<Db> connect(BuildContext context) async {
+  static Future<void> connect({bool reconnection = false}) async {
     log('connecting');
-    _db = await Db.create(
-            'mongodb+srv://suvindran:pXNfQXTYsTZ5H1ZE@kaatru.gnrmu.mongodb.net/kaatru')
-        .onError(
-      (error, stackTrace) async {
-        log(error.toString());
-        await Operations.handleNetworkError(
-          context: context,
-          errorMessage: 'Server seems to be down. Please try again later',
-          callToAction: () async => await connect(context),
-        );
-        return await connect(context);
-      },
-    );
-    await _db.open().onError(
-      (error, stackTrace) async {
-        log(error.toString());
-        await Operations.handleNetworkError(
-          context: context,
-          errorMessage: 'Server seems to be down. Please try again later',
-          callToAction: () async => await connect(context),
-        );
-      },
-    ).timeout(
-      const Duration(seconds: 10),
-    );
-    log(_db.isConnected.toString());
-    if (_db.isConnected) {
-      await Operations.navigate(context);
+    try {
+      _db = await Db.create(
+          'mongodb+srv://suvindran:pXNfQXTYsTZ5H1ZE@kaatru.gnrmu.mongodb.net/kaatru');
+      await _db.open();
+      log('connected');
+    } catch (e) {
+      log('connection error');
+      await Operations.handleNetworkError(
+        context: kNavigatorKey.currentContext!,
+        errorMessage: 'Server seems to be down. Please try again later',
+        callToAction: () {},
+      );
     }
-    return _db;
+    if (_db.isConnected && !reconnection) {
+      timer = Timer.periodic(
+        const Duration(seconds: 10),
+        (timer) async => await reconnect(),
+      );
+      await Operations.navigate();
+    }
+    return;
   }
 
   static Future<void> reconnect() async {
     if (!_db.isConnected) {
       log('reconnecting');
-      await _db.open().timeout(
-            const Duration(seconds: 5),
-          );
+      await connect(reconnection: true);
     }
-    timer = Timer.periodic(
-      const Duration(seconds: 10),
-          (timer) => reconnect(),
-    );
+    return;
   }
 
-  static Future<Map<String, dynamic>?> getUser(BuildContext context,
-      {required String userID}) async {
+  static Future<Map<String, dynamic>?> getUser({required String userID}) async {
     return await _db.collection('creds').findOne(
       {param.userID.name: userID},
-    );
+    ).onError((error, stackTrace) async => await getUser(userID: userID));
+  }
+
+  static Future<void> addFcmToken() async {
+    final String token = await PushNotification().getFcmToken();
+    final Map<String, dynamic> query = {param.userID.name: user.id};
+    final Map<String, dynamic> update = {
+      '\$set': {
+        'token': token,
+      }
+    };
+    if (token.isNotEmpty) {
+      await _db.collection('creds').updateOne(query, update);
+    }
   }
 
   static Future<void> saveUser() async => await _secureStorage
@@ -103,70 +102,49 @@ class Database {
       );
 
   static Future<int> getTicketID() async =>
-      await _db.collection('tickets').count() + 1;
+      await _db
+          .collection('tickets')
+          .count()
+          .onError((error, stackTrace) async => await getTicketID()) +
+      1;
 
-  static Future<void> addTicket(
-      BuildContext context, TicketModel ticket) async {
-    await _db.collection('tickets').insert(ticket.toJson()).onError(
-      (error, stackTrace) async {
-        await Operations.handleNetworkError(
-          context: context,
-          errorMessage: 'Server seems to be down. Please try again later',
-          callToAction: () async => await addTicket(context, ticket),
-        );
-        return ticket.toJson();
-      },
-    ).timeout(
-      const Duration(seconds: 10),
-    );
+  static Future<bool> ticketExists(String deviceID) async {
+    final Map<String, dynamic> query = {param.deviceID.name: deviceID};
+    return !await _db.collection('tickets').find(query).isEmpty;
   }
 
-  static Future<void> deployDevice(
-      BuildContext context, DeviceModel device) async {
-    await _db.collection('installedDevices').insert(
-          device.toJson(),
-        );
-  }
+  static Future<Map<String, dynamic>> addTicket(TicketModel ticket) async =>
+      await _db
+          .collection('tickets')
+          .insert(ticket.toJson())
+          .timeout(const Duration(seconds: 10))
+          .onError((error, stackTrace) async => await addTicket(ticket));
 
-  static Future<List<DeviceModel>> getInstalledDevices(
-      BuildContext context) async {
+  static Future<Map<String, dynamic>> deployDevice(DeviceModel device) async =>
+      await _db
+          .collection('installedDevices')
+          .insert(device.toJson())
+          .onError((error, stackTrace) async => await deployDevice(device));
+
+  static Future<List<DeviceModel>> getInstalledDevices() async {
     final Map<String, dynamic> query = {
       param.userID.name: user.id,
     };
-    return await _db
-        .collection('installedDevices')
-        .find(query)
-        .toList()
-        .then(
+    return await _db.collection('installedDevices').find(query).toList().then(
           (value) => List.generate(
             value.length,
             (index) => DeviceModel.fromJson(
               value.elementAt(index),
             ),
           ),
-        )
-        .timeout(
-      const Duration(seconds: 10),
-      onTimeout: () {
-        log('Timeout error');
-        return getInstalledDevices(context);
-      },
-    ).onError(
-      (error, stackTrace) async {
-        await Operations.handleNetworkError(
-          context: context,
-          errorMessage: 'Server seems to be down. Please try again later',
-          callToAction: () {},
         );
-        return getInstalledDevices(context);
-      },
-    );
   }
 
-  static Future<List<TicketModel>> getTickets(BuildContext context) async {
+  static Future<List<TicketModel>> getTickets() async {
+    final Map<String, dynamic> query = {param.userID.name: user.id};
     return await _db
         .collection('tickets')
-        .find()
+        .find(query)
         .toList()
         .then(
           (value) => List.generate(
@@ -176,15 +154,23 @@ class Database {
             ),
           ),
         )
-        .onError(
-      (error, stackTrace) async {
-        Operations.handleNetworkError(
-          context: context,
-          errorMessage: 'errorMessage',
-          callToAction: () {},
-        );
-        return getTickets(context);
+        .onError((error, stackTrace) async => getTickets());
+  }
+
+  static Future<String> getFcmToken(String deviceID) async {
+    final Map<String, String> query = {param.deviceID.name: deviceID};
+    final String token =
+        await _db.collection('installedDevices').findOne(query).then(
+      (value) async {
+        if (value != null && value.isNotEmpty) {
+          final DeviceModel device = DeviceModel.fromJson(value);
+          return await Database.getUser(userID: device.userID)
+              .then((value) => UserModel.fromJson(value ?? {}).fcmToken);
+        } else {
+          return '';
+        }
       },
     );
+    return token;
   }
 }
