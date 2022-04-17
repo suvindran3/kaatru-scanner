@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:device_scanner/models/user_model.dart';
-import 'package:device_scanner/test.dart';
 import 'package:flutter/material.dart';
 import '../components/custom_snack_bar.dart';
 import 'package:intl/intl.dart';
@@ -84,7 +83,7 @@ class Operations {
       required String password,
       required VoidCallback onError}) async {
     final Map<String, dynamic> user =
-        await Database.getUser(userID: userID) ?? {};
+        await secureTry(Database.getUser(userID: userID)) ?? {};
     if (user.isEmpty) {
       onError();
       ErrorDialog.show(context, 'Invalid user id');
@@ -93,8 +92,8 @@ class Operations {
       ErrorDialog.show(context, 'Wrong password. Please try again');
     } else if (user[param.password.name] == password) {
       Database.user = UserModel.fromJson(user);
-      await Database.saveUser();
-      await Database.addFcmToken();
+      await secureTry(Database.saveUser());
+      await secureTry(Database.addFcmToken());
       navigate();
     }
   }

@@ -3,7 +3,6 @@ import 'package:device_scanner/network/database.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'map_screen.dart';
-
 import 'package:latlong2/latlong.dart';
 
 class InstalledDevicesScreen extends StatelessWidget {
@@ -17,7 +16,7 @@ class InstalledDevicesScreen extends StatelessWidget {
         leading: const BackButton(),
       ),
       body: FutureBuilder<List<DeviceModel>>(
-        future: Database.getInstalledDevices(),
+        future: secureTry(Database.getInstalledDevices()),
         builder: (context, future) {
           if (future.hasData) {
             if (future.data!.isNotEmpty) {
@@ -26,7 +25,7 @@ class InstalledDevicesScreen extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 children: List.generate(
                   future.data!.length,
-                  (index) => DeviceCard(
+                  (index) => _DeviceCard(
                     device: future.data!.elementAt(index),
                   ),
                 ),
@@ -58,8 +57,8 @@ class InstalledDevicesScreen extends StatelessWidget {
   }
 }
 
-class DeviceCard extends StatelessWidget {
-  const DeviceCard({
+class _DeviceCard extends StatelessWidget {
+  const _DeviceCard({
     Key? key,
     required this.device,
   }) : super(key: key);

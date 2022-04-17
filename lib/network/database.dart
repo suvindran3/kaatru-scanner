@@ -23,6 +23,19 @@ enum param {
   fcmToken
 }
 
+/// A future wrapper to handle error and timeout to retry the given future until
+/// the future completes
+
+Future<T> secureTry<T>(Future<T> future) async =>
+    future.timeout(const Duration(seconds: 5)).onError(
+      (error, stackTrace) async {
+        await Future.delayed(
+          const Duration(seconds: 5),
+        );
+        return await secureTry(future);
+      },
+    );
+
 class Database {
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   static late Db _db;
@@ -54,8 +67,13 @@ class Database {
       await Operations.handleNetworkError(
         context: kNavigatorKey.currentContext!,
         errorMessage: 'Server seems to be down. Please try again later',
-        callToAction: () {},
+        callToAction: () async {
+          if (!reconnection) {
+            await connect();
+          }
+        },
       );
+      return;
     }
     if (_db.isConnected && !reconnection) {
       timer = Timer.periodic(
@@ -78,7 +96,7 @@ class Database {
   static Future<Map<String, dynamic>?> getUser({required String userID}) async {
     return await _db.collection('creds').findOne(
       {param.userID.name: userID},
-    ).onError((error, stackTrace) async => await getUser(userID: userID));
+    );
   }
 
   static Future<void> addFcmToken() async {
@@ -114,17 +132,10 @@ class Database {
   }
 
   static Future<Map<String, dynamic>> addTicket(TicketModel ticket) async =>
-      await _db
-          .collection('tickets')
-          .insert(ticket.toJson())
-          .timeout(const Duration(seconds: 10))
-          .onError((error, stackTrace) async => await addTicket(ticket));
+      await _db.collection('tickets').insert(ticket.toJson());
 
   static Future<Map<String, dynamic>> deployDevice(DeviceModel device) async =>
-      await _db
-          .collection('installedDevices')
-          .insert(device.toJson())
-          .onError((error, stackTrace) async => await deployDevice(device));
+      await _db.collection('installedDevices').insert(device.toJson());
 
   static Future<List<DeviceModel>> getInstalledDevices() async {
     final Map<String, dynamic> query = {
@@ -142,19 +153,22 @@ class Database {
 
   static Future<List<TicketModel>> getTickets() async {
     final Map<String, dynamic> query = {param.userID.name: user.id};
-    return await _db
-        .collection('tickets')
-        .find(query)
-        .toList()
-        .then(
+    return await _db.collection('tickets').find(query).toList().then(
           (value) => List.generate(
             value.length,
             (index) => TicketModel.fromJson(
               value.elementAt(index),
             ),
           ),
-        )
-        .onError((error, stackTrace) async => getTickets());
+        );
+  }
+
+  static Future<bool> isDeployedAlready(String deviceID) async {
+    final Map<String, String> query = {param.deviceID.name: deviceID};
+
+    return await _db.collection('installedDevices').findOne(query).then(
+          (value) => value != null && value.isNotEmpty ? true : false,
+        );
   }
 
   static Future<String> getFcmToken(String deviceID) async {

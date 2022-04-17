@@ -12,6 +12,8 @@ import 'package:device_scanner/operations/operations.dart';
 import 'package:device_scanner/screens/success_screen.dart';
 import 'package:flutter/material.dart';
 
+import '../components/custom_loading_indicator.dart';
+
 class DebugScreen extends StatefulWidget {
   final DeviceModel device;
   const DebugScreen({
@@ -49,90 +51,87 @@ class _DebugScreenState extends State<DebugScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: !loading
-          ? success
-              ? StreamBuilder<dynamic>(
-                  stream: webSocket,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      final Map<String, dynamic> data =
-                          jsonDecode(snapshot.data);
-                      final List<String> keys =
-                          data.keys.toList(growable: false);
-                      final List<dynamic> values =
-                          data.values.toList(growable: false);
-                      return SafeArea(
-                        child: Stack(
-                          children: [
-                            ListView(
-                              padding: const EdgeInsets.only(
-                                  top: 20, left: 15, right: 15, bottom: 90),
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade200,
-                                    borderRadius: BorderRadius.circular(10),
-                                    boxShadow: kElevationToShadow[3],
-                                  ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: List.generate(
-                                      26,
-                                      (index) => const ListTile(
-                                        title: Text(
-                                          'parameter',
+      body: FutureBuilder<bool>(
+        future: secureTry(Database.isDeployedAlready(widget.device.id)),
+        builder: (context, future) {
+          log('deployment status: ${future.data}');
+          if (future.hasData) {
+            return !loading
+                ? success
+                    ? StreamBuilder<dynamic>(
+                        stream: webSocket,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            final Map<String, dynamic> data =
+                                jsonDecode(snapshot.data);
+                            final List<String> keys =
+                                data.keys.toList(growable: false);
+                            final List<dynamic> values =
+                                data.values.toList(growable: false);
+                            return SafeArea(
+                              child: Stack(
+                                children: [
+                                  ListView(
+                                    padding: const EdgeInsets.only(
+                                        top: 20,
+                                        left: 15,
+                                        right: 15,
+                                        bottom: 90),
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade200,
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          boxShadow: kElevationToShadow[3],
                                         ),
-                                        trailing: Text(
-                                          'value',
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: List.generate(
+                                            26,
+                                            (index) => const ListTile(
+                                              title: Text(
+                                                'parameter',
+                                              ),
+                                              trailing: Text(
+                                                'value',
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (!future.data!)
+                                    Align(
+                                      alignment: Alignment.bottomCenter,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 15.0, vertical: 20),
+                                        child: CustomButton(
+                                          buttonController: buttonController,
+                                          buttonText: 'DEPLOY DEVICE',
+                                          onTap: buttonController.isLoading
+                                              ? null
+                                              : deploy,
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Align(
-                              alignment: Alignment.bottomCenter,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 15.0, vertical: 20),
-                                child: CustomButton(
-                                  buttonController: buttonController,
-                                  buttonText: 'DEPLOY DEVICE',
-                                  onTap: buttonController.isLoading
-                                      ? null
-                                      : deploy,
-                                ),
+                                ],
                               ),
-                            ),
-                          ],
-                        ),
-                      );
-                    } else {
-                      return const Center(
-                        child: SizedBox(
-                          height: 25,
-                          width: 25,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            valueColor: AlwaysStoppedAnimation(Colors.brown),
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                )
-              : Container()
-          : const Center(
-              child: SizedBox(
-                height: 25,
-                width: 25,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation(Colors.brown),
-                ),
-              ),
-            ),
+                            );
+                          } else {
+                            return const CustomLoadingIndicator();
+                          }
+                        },
+                      )
+                    : Container()
+                : const CustomLoadingIndicator();
+          } else {
+            return const CustomLoadingIndicator();
+          }
+        },
+      ),
     );
   }
 
@@ -156,10 +155,11 @@ class _DebugScreenState extends State<DebugScreen> {
   }
 
   Future<void> addTicket() async {
-    final String ticketID = await Database.getTicketID().then(
+    final String ticketID = await secureTry(Database.getTicketID()).then(
       (value) => value.toString(),
     );
-    final bool ticketExists = await Database.ticketExists(widget.device.id);
+    final bool ticketExists =
+        await secureTry(Database.ticketExists(widget.device.id));
     if (ticketExists) {
       const SnackBar snackBar = SnackBar(
         content: Text('A ticket is already active for this device'),
@@ -167,8 +167,9 @@ class _DebugScreenState extends State<DebugScreen> {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
     } else {
-      final String fcmToken = await Database.getFcmToken(widget.device.id);
-      await Database.addTicket(
+      final String fcmToken =
+          await secureTry(Database.getFcmToken(widget.device.id));
+      await secureTry(Database.addTicket(
         TicketModel.init(
             userID: widget.device.userID,
             deviceID: widget.device.id,
@@ -177,9 +178,9 @@ class _DebugScreenState extends State<DebugScreen> {
             lat: widget.device.lat,
             lng: widget.device.lng,
             username: widget.device.username),
-      );
+      ));
       if (fcmToken.isNotEmpty) {
-        await PushNotification().send(fcmToken);
+        await secureTry(PushNotification().send(fcmToken));
       }
       Navigator.pushAndRemoveUntil(
         context,
@@ -196,7 +197,7 @@ class _DebugScreenState extends State<DebugScreen> {
 
   Future<void> deploy() async {
     buttonController.updateState();
-    await Database.deployDevice(widget.device);
+    await secureTry(Database.deployDevice(widget.device));
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
