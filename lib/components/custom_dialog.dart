@@ -1,30 +1,29 @@
 import 'package:flutter/material.dart';
 
 class CustomDialog {
-  final TickerProvider _tickerProvider;
-  CustomDialog.init(this._tickerProvider);
+  final AnimationController _controller;
+  CustomDialog.init(TickerProvider tickerProvider)
+      : _controller = AnimationController(
+          vsync: tickerProvider,
+          duration: const Duration(milliseconds: 130),
+        );
 
   bool stateChanged = false;
-  late AnimationController _controller;
 
   void dispose() => _controller.dispose();
 
-  void initializeController() => _controller = AnimationController(
-        vsync: _tickerProvider,
-        duration: const Duration(milliseconds: 130),
-      );
-
   Future<dynamic> show({
     required BuildContext context,
-    Future<void> Function()? firstButtonTap,
-    required Future<void> Function() secondButtonTap,
-    required void Function(bool state) onComplete,
     required String title,
     required String content,
     String firstButtonText = 'Cancel',
     required String secondButtonText,
+    MainAxisAlignment? mainAxisAlignment,
+    Future<void> Function()? firstButtonTap,
+    required Future<void> Function() secondButtonTap,
+    required void Function(bool state) onComplete,
   }) async {
-   /* try {
+    /* try {
       _controller.value;
     } catch (e) {
       initializeController();
@@ -71,6 +70,7 @@ class CustomDialog {
               title: Text(title),
               content: Text(content),
               actionsPadding: const EdgeInsets.only(right: 5),
+              actionsAlignment: mainAxisAlignment,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),

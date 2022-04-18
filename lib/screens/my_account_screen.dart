@@ -20,7 +20,6 @@ class _MyAccountScreenState extends State<MyAccountScreen>
   @override
   void initState() {
     customDialog = CustomDialog.init(this);
-    customDialog.initializeController();
     super.initState();
   }
 

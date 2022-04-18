@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:device_scanner/components/custom_button.dart';
+import 'package:device_scanner/components/custom_dialog.dart';
+import 'package:device_scanner/components/error_dialog.dart';
 import 'package:device_scanner/controllers/button_controller.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-
-import 'main.dart';
 
 class Test extends StatefulWidget {
   const Test({Key? key}) : super(key: key);
@@ -15,11 +15,13 @@ class Test extends StatefulWidget {
   State<Test> createState() => _TestState();
 }
 
-class _TestState extends State<Test> {
+class _TestState extends State<Test> with SingleTickerProviderStateMixin {
   final ButtonController buttonController = ButtonController();
+  late CustomDialog customDialog;
 
   @override
   void initState() {
+    customDialog = CustomDialog.init(this);
     super.initState();
   }
 
@@ -35,11 +37,7 @@ class _TestState extends State<Test> {
           Padding(
             padding: const EdgeInsets.all(15.0),
             child: CustomButton(
-                onTap: () async {
-                  buttonController.updateState();
-                  await send();
-                  buttonController.updateState();
-                },
+                onTap: () async {},
                 buttonText: 'Debug Device'.toUpperCase(),
                 buttonController: buttonController),
           ),
@@ -51,7 +49,7 @@ class _TestState extends State<Test> {
 
 Future<void> send() async {
   final Map<String, String> headers = {
-    'Content-Type':  'application/json',
+    'Content-Type': 'application/json',
     'Authorization': 'key=AAAAOk7EGc0:APA91bHUV-34gB8hyoUm1qHvgIuJbVG07pol17OU2fE'
         'zIGz0izJZcPNd--6IKwuZLMMf97FZhvZ6pO5vAlJBvRLILVfsRbaIHXbRCuw_nDitcB9ESz'
         '_tFnO1kk-8MSukNQsynFLI9wrl'

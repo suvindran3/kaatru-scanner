@@ -25,7 +25,8 @@ class DebugScreen extends StatefulWidget {
   State<DebugScreen> createState() => _DebugScreenState();
 }
 
-class _DebugScreenState extends State<DebugScreen> {
+class _DebugScreenState extends State<DebugScreen>
+    with SingleTickerProviderStateMixin {
   late WebSocket webSocket;
   late bool success;
   bool loading = true;
@@ -143,12 +144,7 @@ class _DebugScreenState extends State<DebugScreen> {
       success = false;
     }
     if (!success) {
-      Operations.handleNetworkError(
-        context: context,
-        errorMessage: 'Device is not working properly',
-        buttonText: 'Raise Ticket'.toUpperCase(),
-        callToAction: addTicket,
-      );
+      show();
     } else {
       setState(() => loading = false);
     }
@@ -207,6 +203,84 @@ class _DebugScreenState extends State<DebugScreen> {
         ),
       ),
       (Route<dynamic> route) => route.isFirst,
+    );
+  }
+
+  Future<dynamic> show() async {
+    return showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: '',
+      transitionBuilder: (BuildContext context, Animation<double> animation,
+              Animation<double> secondaryAnimation, Widget child) =>
+          Transform.scale(
+        scale: animation.value,
+        child: child,
+      ),
+      pageBuilder: (BuildContext context, Animation<double> animation,
+              Animation<double> secondaryAnimation) =>
+          AlertDialog(
+        actionsAlignment: MainAxisAlignment.spaceBetween,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+        actionsPadding: const EdgeInsets.only(bottom: 20, left: 15, right: 15),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        title: Text(
+          'Error',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.headline1?.copyWith(
+              color: Colors.brown, fontWeight: FontWeight.bold, fontSize: 19),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(
+              height: 10,
+            ),
+            Text(
+              'Device is not working properly',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.subtitle1,
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              init();
+              Navigator.pop(context);
+            },
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(Colors.white),
+              shadowColor: MaterialStateProperty.all(Colors.white),
+              foregroundColor: MaterialStateProperty.all(Colors.brown),
+              shape: MaterialStateProperty.all(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+            ),
+            child: Text('Retry'.toUpperCase()),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              addTicket();
+              Navigator.pop(context);
+            },
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(Colors.brown),
+              shape: MaterialStateProperty.all(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+            ),
+            child: Text('Raise ticket'.toUpperCase()),
+          ),
+        ],
+      ),
     );
   }
 }

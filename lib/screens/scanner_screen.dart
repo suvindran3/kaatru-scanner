@@ -15,7 +15,7 @@ class ScannerScreen extends StatefulWidget {
 }
 
 class _ScannerScreenState extends State<ScannerScreen> {
-  String? barcode;
+  Barcode? _barcode;
 
   final MobileScannerController controller = MobileScannerController(
     torchEnabled: false,
@@ -158,9 +158,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   dynamic handleQRCode(
       Barcode barcode, MobileScannerArguments? arguments) async {
-    if (barcode.rawValue != null) {
-      HapticFeedback.vibrate();
-      final String deviceID = barcode.rawValue ?? '';
+    if (barcode.rawValue != null && _barcode == null) {
+      await HapticFeedback.vibrate();
+      _barcode = barcode;
+      final String deviceID = _barcode?.rawValue ?? '';
       try {
         final Map<String, String> details = {
           deviceID.split(':')[0]: deviceID.split(':')[1]
@@ -177,7 +178,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           MaterialPageRoute(
             builder: (context) => ScannedScreen(device: metaDetails),
           ),
-        );
+        ).whenComplete(() => _barcode = null);
       } catch (e) {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
