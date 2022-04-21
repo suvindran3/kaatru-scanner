@@ -64,7 +64,7 @@ class _MyAccountScreenState extends State<MyAccountScreen>
             ),
             Expanded(
               child: Container(
-                margin: const EdgeInsets.only(bottom: 15, left: 15, right: 15),
+                margin: const EdgeInsets.only(bottom: 35, left: 15, right: 15),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(10),

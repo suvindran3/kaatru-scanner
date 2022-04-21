@@ -1,3 +1,4 @@
+import 'package:device_scanner/components/custom_loading_indicator.dart';
 import 'package:device_scanner/components/error_dialog.dart';
 import 'package:device_scanner/network/push_notification.dart';
 import 'package:flutter/material.dart';
@@ -49,12 +50,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: Center(
-        child: Text(
-          'KAATRU',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ),
+      body: CustomLoadingIndicator(),
     );
   }
 }

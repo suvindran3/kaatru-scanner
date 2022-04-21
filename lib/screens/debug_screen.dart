@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:device_scanner/components/custom_button.dart';
+import 'package:device_scanner/components/custom_loading_indicator.dart';
 import 'package:device_scanner/controllers/button_controller.dart';
 import 'package:device_scanner/models/device_model.dart';
 import 'package:device_scanner/models/ticket_model.dart';
@@ -12,7 +13,7 @@ import 'package:device_scanner/operations/operations.dart';
 import 'package:device_scanner/screens/success_screen.dart';
 import 'package:flutter/material.dart';
 
-import '../components/custom_loading_indicator.dart';
+import '../components/simple_loading_indicator.dart';
 
 class DebugScreen extends StatefulWidget {
   final DeviceModel device;

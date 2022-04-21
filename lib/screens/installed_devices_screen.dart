@@ -1,3 +1,4 @@
+import 'package:device_scanner/components/custom_loading_indicator.dart';
 import 'package:device_scanner/models/device_model.dart';
 import 'package:device_scanner/network/database.dart';
 import 'package:flutter/material.dart';
@@ -40,16 +41,7 @@ class InstalledDevicesScreen extends StatelessWidget {
               );
             }
           } else {
-            return const Center(
-              child: SizedBox(
-                height: 25,
-                width: 25,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation(Colors.brown),
-                ),
-              ),
-            );
+            return const CustomLoadingIndicator();
           }
         },
       ),

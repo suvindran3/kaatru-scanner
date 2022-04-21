@@ -1,4 +1,4 @@
-import 'package:device_scanner/controllers/navbar_controller.dart';
+import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:device_scanner/operations/operations.dart';
 import 'package:device_scanner/screens/my_account_screen.dart';
 import 'package:device_scanner/screens/scanner_screen.dart';
@@ -13,13 +13,21 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   final PageController pageController = PageController();
-  final NavbarController navbarController = NavbarController();
+  late TabController tabController;
+
+  @override
+  void initState() {
+    tabController = TabController(length: 3, vsync: this);
+    super.initState();
+  }
 
   @override
   void dispose() {
-    navbarController.dispose();
+    pageController.dispose();
+    tabController.dispose();
     super.dispose();
   }
 
@@ -27,50 +35,70 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async => await Operations.exit(context),
-      child: Scaffold(
-        bottomNavigationBar: AnimatedBuilder(
-          animation: navbarController,
-          builder: (context, _) {
-            return BottomNavigationBar(
-              onTap: (index) => navbarController.updateIndex(index,
-                  pageController: pageController),
-              iconSize: 30,
-              currentIndex: navbarController.currentIndex,
-              type: BottomNavigationBarType.fixed,
+      child: Theme(
+        data: ThemeData(
+          textTheme: TextTheme(
+            bodyText2: GoogleFonts.sourceSansPro(fontWeight: FontWeight.bold),
+          ),
+        ),
+        child: Scaffold(
+          bottomNavigationBar: ConvexAppBar(
+              height: 60,
+              controller: tabController,
               backgroundColor: Colors.brown,
-              unselectedItemColor: Colors.white54,
-              selectedItemColor: Colors.white,
-              selectedLabelStyle:
-                  GoogleFonts.sourceSansPro(fontWeight: FontWeight.bold),
-              unselectedLabelStyle:
-                  GoogleFonts.sourceSansPro(fontWeight: FontWeight.bold),
+              color: Colors.white70,
+              onTap: (index) {
+                pageController.animateToPage(index,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.decelerate);
+              },
               items: const [
-                BottomNavigationBarItem(
-                  label: 'SCAN',
-                  icon: Icon(Icons.qr_code),
+                TabItem(
+                  title: 'SCAN',
+                  icon: Icon(
+                    Icons.qr_code,
+                    color: Colors.white70,
+                  ),
+                  activeIcon: Icon(
+                    Icons.qr_code,
+                    color: Colors.black,
+                  ),
                 ),
-                BottomNavigationBarItem(
-                  label: 'TICKETS',
-                  icon: Icon(Icons.confirmation_number_outlined),
+                TabItem(
+                  title: 'TICKETS',
+                  icon: Icon(
+                    Icons.confirmation_number_outlined,
+                    color: Colors.white70,
+                  ),
+                  activeIcon: Icon(
+                    Icons.confirmation_number_outlined,
+                    color: Colors.black,
+                  ),
                 ),
-                BottomNavigationBarItem(
-                  label: 'MY ACCOUNT',
-                  icon: Icon(Icons.person),
+                TabItem(
+                  title: 'MY ACCOUNT',
+                  icon: Icon(
+                    Icons.person,
+                    color: Colors.white70,
+                  ),
+                  activeIcon: Icon(
+                    Icons.person,
+                    color: Colors.black,
+                  ),
                 ),
               ],
-            );
-          },
-        ),
-        body: PageView(
-          controller: pageController,
-          onPageChanged: (index) {
-            navbarController.updateIndex(index);
-          },
-          children: const [
-            ScannerScreen(),
-            TicketsScreen(),
-            MyAccountScreen(),
-          ],
+            ),
+          body: PageView(
+            controller: pageController,
+            onPageChanged: (index) {
+              tabController.animateTo(index);
+            },
+            children: const [
+              ScannerScreen(),
+              TicketsScreen(),
+              MyAccountScreen(),
+            ],
+          ),
         ),
       ),
     );
